@@ -1,4 +1,3 @@
-import { useState, type SubmitEvent } from "react";
 import {
     Box,
     Card,
@@ -6,41 +5,20 @@ import {
     Stack,
     Typography,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
+
 import { CustomInput } from "../CustomInput";
 import { PrimaryButton } from "../Buttons";
-import { authAPI } from "../../networkManager";
-import { getApiErrorMessage } from "../../networkManager/apiError";
+import { useLoginController } from "./login.controller";
 
 const Login = () => {
-    const [userName, setUserName] = useState("");
-    const [password, setPassword] = useState("");
-    const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const { login } = useAuth();
-    const navigate = useNavigate();
 
-    const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        const payload = {
-            username: userName,
-            password: password
-        }
-
-        try {
-            const response = await authAPI.login(payload);
-            if (response?.status_code === 200) {
-                await login(response.data.token);
-                navigate("/dashboard");
-                return;
-            }
-            setErrorMessage("Login failed. Please try again.");
-        } catch (err) {
-            setErrorMessage(getApiErrorMessage(err));
-        }
-        // await login("demo-token");
-        // navigate("/dashboard");
-    };
+    const { userName,
+        password,
+        setUserName,
+        setPassword,
+        errorMessage,
+        handleSubmit,
+    } = useLoginController()
 
     return (
         <Box

@@ -9,7 +9,7 @@ export interface ApiResponse<T = unknown> {
 }
 
 export interface LoginData {
-  token: string;
+  access_token: string;
 }
 
 export const authAPI = {

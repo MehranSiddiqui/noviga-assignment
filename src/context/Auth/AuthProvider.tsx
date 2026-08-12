@@ -7,15 +7,17 @@ import { AuthContext } from "./authContext";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     useEffect(() => {
         const initializeAuth = async (): Promise<void> => {
             const token = StorageManager.getToken();
+            console.log(token,"asckjakjsb")
             if (token) {
                 try {
                     await authAPI.getUser();
                     setIsAuthenticated(true);
+                    
                 } catch (error) {
                     console.error(getApiErrorMessage(error));
                     setIsAuthenticated(false);
