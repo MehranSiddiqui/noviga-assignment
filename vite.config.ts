@@ -8,4 +8,12 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] })
   ],
+  resolve: {
+    alias: [
+      {
+        find: /^@mui\/styled-engine$/,
+        replacement: '@mui/styled-engine-sc',
+      },
+    ],
+  },
 })

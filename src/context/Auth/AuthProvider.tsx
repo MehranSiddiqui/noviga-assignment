@@ -1,6 +1,7 @@
 import { useState, useEffect, type ReactNode } from "react";
 import { StorageManager } from "../../utils/storageManager";
 import { authAPI } from "../../networkManager";
+import { getApiErrorMessage } from "../../networkManager/apiError";
 import { AuthContext } from "./authContext";
 
 
@@ -16,7 +17,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     await authAPI.getUser();
                     setIsAuthenticated(true);
                 } catch (error) {
-                    console.log(error);
+                    console.error(getApiErrorMessage(error));
                     setIsAuthenticated(false);
                     StorageManager.removeToken();
                 }

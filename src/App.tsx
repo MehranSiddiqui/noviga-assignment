@@ -21,6 +21,8 @@ function App() {
   return (
     <AuthProvider>
       <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
         {publicRoutes.map((route) => (
           <Route key={route.path} path={route.path} element={route.element} />
         ))}

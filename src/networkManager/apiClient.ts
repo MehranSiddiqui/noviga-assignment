@@ -22,15 +22,17 @@ apiClient.interceptors.request.use(
 
 apiClient.interceptors.response.use(
   (response) => {
-    if (response?.data && response?.data?.data) {
-      return response?.data?.data;
+    if (response?.data) {
+      return response.data;
     }
     return response;
   },
   (error) => {
-    if (error?.response?.status >= 400) {
+    if (error?.response?.status === 401) {
       StorageManager.removeToken();
-      window.location.href = "/login";
+      if (window?.location?.pathname !== "/login") {
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(error);
   },

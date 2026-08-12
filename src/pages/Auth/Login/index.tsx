@@ -1,7 +1,8 @@
+import Login from "../../../components/LoginComponent"
 
 const LoginPage = (): React.ReactElement => {
     return (
-        <div>index</div>
+        <Login />
     )
 }
 
