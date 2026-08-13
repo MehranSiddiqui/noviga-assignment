@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import PublicLayout from "../layouts/PublicLayout";
 
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -12,7 +13,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/dashboard" replace />;
   }
 
-  return <>{children}</>;
+  return <PublicLayout>{children}</PublicLayout>;
 };
 
 export default PublicRoute;

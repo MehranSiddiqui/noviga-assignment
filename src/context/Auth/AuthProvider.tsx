@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         const initializeAuth = async (): Promise<void> => {
             const token = StorageManager.getToken();
-            console.log(token,"asckjakjsb")
+            
             if (token) {
                 try {
                     await authAPI.getUser();
