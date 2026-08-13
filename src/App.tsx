@@ -2,35 +2,20 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./context/Auth/AuthProvider";
 import { publicRoutes, privateRoutes } from "./routes"
 import { useAuth } from "./hooks/useAuth";
+import ProtectedRoute from "./HOC/ProtectedRoute";
+import PublicRoute from "./HOC/PublicRoute";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading } = useAuth();
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <>{children}</>;
-};
-
-const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  return <>{children}</>;
-};
-
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2, // Retries failed requests (like HTTP 500) a couple of times[cite: 1]
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+      refetchOnWindowFocus: false, // Prevents aggressive refetching while developing
+    },
+  },
+});
 const AppRoutes = () => {
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -70,10 +55,11 @@ const AppRoutes = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppRoutes />
-    </AuthProvider>
-  );
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </QueryClientProvider>);
 }
 
 export default App;

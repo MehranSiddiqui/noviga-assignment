@@ -1,4 +1,4 @@
-import axios, { type AxiosError } from "axios";
+import axios from "axios";
 
 export const getApiErrorMessage = (error: unknown): string => {
   if (axios.isAxiosError(error)) {

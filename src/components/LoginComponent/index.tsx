@@ -18,6 +18,7 @@ const Login = () => {
         setPassword,
         errorMessage,
         handleSubmit,
+        isPending
     } = useLoginController()
 
     return (
@@ -70,7 +71,7 @@ const Login = () => {
                                     </Typography>
                                 ) : null}
 
-                                <PrimaryButton type="submit" fullWidth>
+                                <PrimaryButton disabled={isPending} type="submit" fullWidth>
                                     Sign In
                                 </PrimaryButton>
 

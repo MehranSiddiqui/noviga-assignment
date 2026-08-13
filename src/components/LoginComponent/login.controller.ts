@@ -1,8 +1,8 @@
 import { useState, type SubmitEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import { authAPI } from "../../networkManager";
 import { getApiErrorMessage } from "../../networkManager/apiError";
+import { useLoginMutation } from "../../hooks/Queries/useAuthQueries";
 
 export const useLoginController = () => {
   const [userName, setUserName] = useState("");
@@ -10,7 +10,7 @@ export const useLoginController = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { login } = useAuth();
   const navigate = useNavigate();
-
+  const { mutateAsync: loginApiCall, isPending } = useLoginMutation();
   const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     const payload = {
@@ -19,7 +19,7 @@ export const useLoginController = () => {
     };
 
     try {
-      const response = await authAPI.login(payload);
+      const response = await loginApiCall(payload);
       if (response?.status_code === 200) {
         console.log({ response });
         await login(response.data.access_token);
@@ -30,8 +30,6 @@ export const useLoginController = () => {
     } catch (err) {
       setErrorMessage(getApiErrorMessage(err));
     }
-    // await login("demo-token");
-    // navigate("/dashboard");
   };
 
   return {
@@ -41,5 +39,6 @@ export const useLoginController = () => {
     setPassword,
     errorMessage,
     handleSubmit,
+    isPending,
   };
 };
