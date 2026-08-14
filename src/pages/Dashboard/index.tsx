@@ -1,7 +1,7 @@
+import DashBoardComponent from "../../components/DashboardComponent/Filter"
+
 const DashboardPage = (): React.ReactElement => {
-    return (
-        <div>index</div>
-    )
+    return <DashBoardComponent />
 }
 
 export default DashboardPage

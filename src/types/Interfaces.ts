@@ -15,3 +15,28 @@ export interface ApiResponse<T = unknown> {
 export interface LoginData {
   access_token: string;
 }
+export interface MappedAsset {
+  id: string;
+  name: string;
+  assetLevelId: number;
+}
+export interface MappedShift {
+  shiftId: string;
+  shiftName: string;
+  startTime: string;
+  endTime: string;
+  label: string;
+}
+export interface RawAssetNode {
+  id: string;
+  name?: string | undefined;
+  codename?: string | null;
+  assetlevel_id: number;
+  children?: RawAssetNode[] | null;
+}
+
+export interface RawShift {
+  id: string;
+  name: string;
+  shift_timings: string[];
+}
