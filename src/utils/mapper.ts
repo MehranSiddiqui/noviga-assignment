@@ -39,7 +39,7 @@ export const mapShifts = (shifts: RawShift[]): MappedShift[] => {
       const endTime = timings[(i + 1) % timings.length];
       const shiftName = `${shift.name} (${startTime} - ${endTime})`;
       mappedShifts.push({
-        shiftId: `${shift.id}-${shiftName}`, //By using this we are able to show only one selected shift
+        shiftId: `${shift.id}|${shiftName}`, //By using this we are able to show only one selected shift
         shiftName: shiftName,
         startTime,
         endTime,

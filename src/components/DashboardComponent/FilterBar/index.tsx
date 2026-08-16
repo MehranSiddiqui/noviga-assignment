@@ -1,21 +1,27 @@
 import { Box, Button, Stack, Switch, FormControlLabel } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
-import type { DropdownOption } from '../../../CustomDropdown';
-import CustomDropdown from '../../../CustomDropdown';
-import CustomDatepicker from '../../../CustomDatepicker';
+import type { DropdownOption } from '../../CustomDropdown';
+import CustomDropdown from '../../CustomDropdown';
+import CustomDatepicker from '../../CustomDatepicker';
 import { useFilterBarController } from "./filterbar.controller"
-import type { MappedAsset, MappedShift } from '../../../../types/Interfaces';
+import type { MappedAsset, MappedShift } from '../../../types/Interfaces';
 
-const FilterBar = () => {
+import type { FilterState } from '../../../types/types';
+
+interface FilterBarProps {
+    handleFilterChange?: (filterState: FilterState) => void
+}
+
+const FilterBar = ({ handleFilterChange }: FilterBarProps) => {
     const { filterState,
         flatAssets,
         dropdownShifts,
         assetsLoading,
         shiftsLoading,
         exactProduces,
-        handleFilterState,
+        handleFilterChange: handleFilterChangeFromController,
         resetFilters,
-        handleExactProducesChange, } = useFilterBarController()
+        handleExactProducesChange, } = useFilterBarController(handleFilterChange)
 
     // Transform API data to dropdown options
     const assetOptions: DropdownOption[] = Array.isArray(flatAssets)
@@ -52,9 +58,9 @@ const FilterBar = () => {
                     <CustomDropdown
                         id="asset-dropdown"
                         label="Asset"
-                        value={filterState.assetId}
+                        value={filterState.assetId ?? ''}
                         onChange={(value) =>
-                            handleFilterState({ key: 'assetId', value: String(value) })
+                            handleFilterChangeFromController('assetId', value)
                         }
                         options={assetOptions}
                         isLoading={assetsLoading}
@@ -66,9 +72,9 @@ const FilterBar = () => {
                     <CustomDropdown
                         id="shift-dropdown"
                         label="Shift"
-                        value={filterState.shiftId}
+                        value={filterState.shiftId ?? ''}
                         onChange={(value) =>
-                            handleFilterState({ key: 'shiftId', value: String(value) })
+                            handleFilterChangeFromController('shiftId', value)
                         }
                         options={shiftOptions}
                         isLoading={shiftsLoading}
@@ -80,9 +86,9 @@ const FilterBar = () => {
                     <CustomDatepicker
                         id="date-picker"
                         label="Date"
-                        value={filterState.date}
+                        value={filterState.date ?? ''}
                         onChange={(value) =>
-                            handleFilterState({ key: 'date', value })
+                            handleFilterChangeFromController('date', value)
                         }
                     />
                 </Box>

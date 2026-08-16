@@ -1,4 +1,4 @@
-import DashBoardComponent from "../../components/DashboardComponent/Filter"
+import DashBoardComponent from "../../components/DashboardComponent"
 
 const DashboardPage = (): React.ReactElement => {
     return <DashBoardComponent />

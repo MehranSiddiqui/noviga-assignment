@@ -1,0 +1,135 @@
+import { useMemo } from "react";
+import type { ActiveFilterState } from "../../../types/types";
+import {
+  buildUtcTimeRange,
+  generateShiftBuckets,
+  IST_TIMEZONE,
+} from "../../../utils/dateTimeUtils";
+import type { ApiPayload } from "../../../types/Interfaces";
+import {
+  useCycleTimeQuery,
+  useTimelineQuery,
+} from "../../../hooks/Queries/useAnalyticsQueries";
+import dayjs from "dayjs";
+import { processTableData } from "../../../utils/tableProcessor";
+
+export const useTableChartController = (activeFilters: ActiveFilterState) => {
+  const ROWS = [
+    { key: "total", label: "Total", suffix: "" },
+    { key: "pass", label: "Pass", suffix: "" },
+    { key: "fail", label: "Fail", suffix: "" },
+    {
+      key: "actualCycleTime",
+      label: "Actual Cycle Time",
+      suffix: " secs",
+      isFloat: true,
+    },
+    {
+      key: "idealCycleTime",
+      label: "Ideal Cycle Time",
+      suffix: " secs",
+      isFloat: true,
+    },
+    { key: "runtime", label: "Runtime", suffix: " mins", isFloat: true },
+    {
+      key: "plannedDowntime",
+      label: "Planned Downtime",
+      suffix: " mins",
+      isFloat: true,
+    },
+    {
+      key: "minorStoppage",
+      label: "Minor Stoppage",
+      suffix: " mins",
+      isFloat: true,
+    },
+    {
+      key: "unknownDowntime",
+      label: "Unknown Downtime",
+      suffix: " mins",
+      isFloat: true,
+    },
+    {
+      key: "unplannedDowntime",
+      label: "Unplanned Downtime",
+      suffix: " mins",
+      isFloat: true,
+    },
+    {
+      key: "unplannedProduction",
+      label: "Unplanned Production",
+      suffix: " mins",
+      isFloat: true,
+    },
+    {
+      key: "unknownUnplannedProduction",
+      label: "Unknown Unplanned Production",
+      suffix: " mins",
+      isFloat: true,
+    },
+  ];
+  const apiPayload = useMemo(() => {
+    // 1. GATEKEEPER RESTORED: The API strictly requires an entity_scope
+    if (!activeFilters?.assetId) {
+      return null;
+    }
+
+    // 2. Establish the time range
+    const targetDate =
+      activeFilters?.date || dayjs().tz(IST_TIMEZONE).format("YYYY-MM-DD");
+    const startTime = activeFilters?.shiftStartTime || "00:00";
+    const endTime = activeFilters?.shiftEndTime || "23:59";
+
+    const timeRange = buildUtcTimeRange(targetDate, startTime, endTime);
+
+    // 3. Build the strict payload allowed by the API
+    const payload: ApiPayload = {
+      entity_scope: {
+        type: "asset",
+        asset: {
+          asset_id: activeFilters.assetId,
+          asset_level_id: Number(activeFilters.assetLevelId),
+        },
+      },
+      time_range: timeRange,
+    };
+
+    return payload;
+  }, [activeFilters]);
+  const {
+    data: timelineData,
+    isFetching: timelineFetching,
+    error: timelineError,
+  } = useTimelineQuery(apiPayload);
+
+  const {
+    data: cycleData,
+    isFetching: cycleFetching,
+    error: cycleError,
+  } = useCycleTimeQuery(
+    apiPayload
+      ? {
+          ...apiPayload,
+          distribution: "hourly",
+          metrics: ["ideal_cycle_time_seconds", "actual_cycle_time_seconds"],
+        }
+      : null,
+  );
+  const tableData = useMemo(() => {
+    if (!apiPayload || !apiPayload.time_range || !timelineData) return [];
+
+    const buckets = generateShiftBuckets(
+      apiPayload.time_range.from_ts,
+      apiPayload.time_range.to_ts,
+    );
+
+    // Ensure we are passing the correct nested data array depending on your API structure
+    return processTableData(buckets, timelineData, cycleData);
+  }, [apiPayload, timelineData, cycleData]);
+
+  console.log({ tableData });
+  return {
+    ROWS,
+    tableData,
+  };
+};

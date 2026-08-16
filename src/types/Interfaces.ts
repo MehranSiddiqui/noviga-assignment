@@ -40,3 +40,69 @@ export interface RawShift {
   name: string;
   shift_timings: string[];
 }
+
+export interface ShiftBucket {
+  index: number;
+  startUtc: string;
+  endUtc: string;
+  startMs: number;
+  endMs: number;
+  startIstLabel: string;
+  endIstLabel: string;
+  label: string;
+  durationMinutes: number;
+  isElapsed: boolean;
+}
+
+export interface ProcessedHour {
+  bucket: ShiftBucket;
+  total: number;
+  pass: number;
+  fail: number;
+  actualCycleTime: number | null;
+  idealCycleTime: number | null;
+  runtime: number;
+  plannedDowntime: number;
+  minorStoppage: number;
+  unknownDowntime: number;
+  unplannedDowntime: number;
+  unplannedProduction: number;
+  unknownUnplannedProduction: number;
+}
+
+export interface Rows {
+  key: string;
+  label: string;
+  suffix?: string;
+  isFloat?: boolean;
+}
+
+export interface ApiPayload {
+  entity_scope: {
+    type: string;
+    asset: {
+      asset_id: string;
+      asset_level_id?: number;
+    };
+  };
+  time_range: {
+    from_ts: string;
+    to_ts: string;
+  };
+}
+
+export interface ProcessedHour {
+  bucket: ShiftBucket;
+  total: number;
+  pass: number;
+  fail: number;
+  actualCycleTime: number | null;
+  idealCycleTime: number | null;
+  runtime: number;
+  plannedDowntime: number;
+  minorStoppage: number;
+  unknownDowntime: number;
+  unplannedDowntime: number;
+  unplannedProduction: number;
+  unknownUnplannedProduction: number;
+}

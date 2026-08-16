@@ -99,7 +99,7 @@ export default function PrivateLayout({ children }: PrivateLayoutProps) {
           </List>
         </Box>
       </Drawer>
-      <Box component="main" sx={{ flexGrow: 1, p: 3, backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
+      <Box component="main" sx={{ flexGrow: 1, p: 3, backgroundColor: '#f8f9fa', minHeight: '100vh', maxWidth: "50vw" }}>
         <Toolbar />
         {children}
       </Box>
