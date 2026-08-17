@@ -26,7 +26,7 @@ export function buildUtcTimeRange(
     "YYYY-MM-DD HH:mm",
     IST_TIMEZONE,
   );
-
+  // const exactFormat = "YYYY-MM-DDTHH:mm:ss[Z]";
   // Check for midnight crossing (e.g., 19:00 -> 08:30) and add a day if needed
   if (endIst.isSameOrBefore(startIst)) {
     endIst = endIst.add(1, "day");

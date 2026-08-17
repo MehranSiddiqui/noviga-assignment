@@ -60,9 +60,7 @@ const CustomDropdown = ({
         label={label}
         disabled={isLoading}
       >
-        <MenuItem value="">
-          <em>Select an option</em>
-        </MenuItem>
+
         {options.map((option) => (
           <MenuItem key={option.id} value={option.id}>
             {option.name}

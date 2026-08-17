@@ -1,4 +1,4 @@
-import type { ApiResponse, LoginData } from "../types/Interfaces";
+import type { ApiPayload, ApiResponse, LoginData } from "../types/Interfaces";
 import apiClient from "./apiClient";
 import { ENDPOINTS } from "./endPoints";
 
@@ -24,8 +24,8 @@ export const coreAPI = {
 };
 
 export const analyticsAPI = {
-  postTimeline: (data: Record<string, string | number | boolean>) =>
+  postTimeline: (data: ApiPayload) =>
     apiClient.post(ENDPOINTS.ANALYTICS.POST_TIMELINE, data),
-  postCycleTime: (data: Record<string, string | number | boolean>) =>
+  postCycleTime: (data: ApiPayload) =>
     apiClient.post(ENDPOINTS.ANALYTICS.POST_CYCLE_TIME, data),
 };

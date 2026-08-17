@@ -6,7 +6,7 @@ import HourlySummaryTable from "./HourlySummaryTable"
 const TimelineTableContainer = ({ activeFilters }: {
     activeFilters: ActiveFilterState | null
 }) => {
-    const { ROWS, tableData } = useTableChartController(activeFilters)
+    const { ROWS, tableData } = useTableChartController(activeFilters as ActiveFilterState)
     return (
         <Wrapper><HourlySummaryTable rows={ROWS} tableData={tableData} /></Wrapper>
     )

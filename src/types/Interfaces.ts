@@ -89,6 +89,10 @@ export interface ApiPayload {
     from_ts: string;
     to_ts: string;
   };
+
+  distribution?: string;
+  metrics?: string[];
+  
 }
 
 export interface ProcessedHour {

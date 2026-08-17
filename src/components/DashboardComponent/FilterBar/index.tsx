@@ -13,15 +13,19 @@ interface FilterBarProps {
 }
 
 const FilterBar = ({ handleFilterChange }: FilterBarProps) => {
-    const { filterState,
+    const {
+        filterState,
         flatAssets,
+        filteredAssets, // Make sure your UI uses this array for the Asset dropdown!
+        uniqueLevels, // Use this for your new Asset Level dropdown
         dropdownShifts,
         assetsLoading,
         shiftsLoading,
         exactProduces,
         handleFilterChange: handleFilterChangeFromController,
         resetFilters,
-        handleExactProducesChange, } = useFilterBarController(handleFilterChange)
+        handleExactProducesChange
+    } = useFilterBarController(handleFilterChange)
 
     // Transform API data to dropdown options
     const assetOptions: DropdownOption[] = Array.isArray(flatAssets)
@@ -58,11 +62,23 @@ const FilterBar = ({ handleFilterChange }: FilterBarProps) => {
                     <CustomDropdown
                         id="asset-dropdown"
                         label="Asset"
+                        value={filterState.assetLevel ?? ''}
+                        onChange={(value) =>
+                            handleFilterChangeFromController('assetLevel', value)
+                        }
+                        options={uniqueLevels}
+                        isLoading={assetsLoading}
+                    />
+                </Box>
+                <Box sx={{ flex: 1, minWidth: 200 }}>
+                    <CustomDropdown
+                        id="asset-dropdown"
+                        label="Asset"
                         value={filterState.assetId ?? ''}
                         onChange={(value) =>
                             handleFilterChangeFromController('assetId', value)
                         }
-                        options={assetOptions}
+                        options={filteredAssets}
                         isLoading={assetsLoading}
                     />
                 </Box>

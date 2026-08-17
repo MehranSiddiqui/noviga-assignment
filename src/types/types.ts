@@ -8,6 +8,7 @@ export type FilterState = {
   assetId?: string;
   shiftId?: string;
   date?: string;
+  assetLevel?: number | string;
 };
 export type ActiveFilterState = {
   assetId?: string;

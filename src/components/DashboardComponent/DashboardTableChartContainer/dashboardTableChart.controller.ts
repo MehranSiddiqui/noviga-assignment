@@ -68,21 +68,20 @@ export const useTableChartController = (activeFilters: ActiveFilterState) => {
       isFloat: true,
     },
   ];
+  console.log({ activeFilters });
   const apiPayload = useMemo(() => {
-    // 1. GATEKEEPER RESTORED: The API strictly requires an entity_scope
     if (!activeFilters?.assetId) {
       return null;
     }
 
-    // 2. Establish the time range
     const targetDate =
-      activeFilters?.date || dayjs().tz(IST_TIMEZONE).format("YYYY-MM-DD");
+      activeFilters?.date ||
+      dayjs().add(-1, "day").tz(IST_TIMEZONE).format("YYYY-MM-DD");
     const startTime = activeFilters?.shiftStartTime || "00:00";
     const endTime = activeFilters?.shiftEndTime || "23:59";
 
     const timeRange = buildUtcTimeRange(targetDate, startTime, endTime);
 
-    // 3. Build the strict payload allowed by the API
     const payload: ApiPayload = {
       entity_scope: {
         type: "asset",
@@ -96,11 +95,21 @@ export const useTableChartController = (activeFilters: ActiveFilterState) => {
 
     return payload;
   }, [activeFilters]);
+console.log({ activeFilters})
+  const timelinePayload = useMemo(() => {
+    if (!apiPayload) return null;
+    return {
+      ...apiPayload,
+      exact_produces: activeFilters?.exactProduces ,
+      produce_counts: true,
+      group_produce_counts_by_part_model: true,
+    };
+  }, [apiPayload, activeFilters?.exactProduces]);
   const {
     data: timelineData,
     isFetching: timelineFetching,
     error: timelineError,
-  } = useTimelineQuery(apiPayload);
+  } = useTimelineQuery(timelinePayload);
 
   const {
     data: cycleData,
@@ -123,7 +132,6 @@ export const useTableChartController = (activeFilters: ActiveFilterState) => {
       apiPayload.time_range.to_ts,
     );
 
-    // Ensure we are passing the correct nested data array depending on your API structure
     return processTableData(buckets, timelineData, cycleData);
   }, [apiPayload, timelineData, cycleData]);
 

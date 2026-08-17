@@ -6,11 +6,11 @@ export const useTimelineQuery = (payload: ApiPayload | null) => {
   return useQuery({
     queryKey: ["timeline", payload],
     queryFn: async () => {
-      const response = await analyticsAPI.postTimeline(payload);
+      const response = await analyticsAPI.postTimeline(payload as ApiPayload);
       return response.data;
     },
     enabled: !!payload,
-    staleTime: 5 * 60 * 1000,
+    // staleTime: 5 * 60 * 1000,
   });
 };
 
@@ -18,7 +18,7 @@ export const useCycleTimeQuery = (payload: ApiPayload | null) => {
   return useQuery({
     queryKey: ["cycleTime", payload],
     queryFn: async () => {
-      const response = await analyticsAPI.postCycleTime(payload);
+      const response = await analyticsAPI.postCycleTime(payload as ApiPayload);
       return response.data;
     },
     enabled: !!payload,
