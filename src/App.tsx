@@ -9,6 +9,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import ErrorBoundary from "./components/ErrorBoundary";
+import AppLoader from "./components/Apploader/AppLoader";
 
 
 const queryClient = new QueryClient({
@@ -83,7 +84,7 @@ const AppRoutes = () => {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <AppLoader loading={isLoading} />;
   }
 
   return (

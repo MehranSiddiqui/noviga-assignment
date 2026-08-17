@@ -5,6 +5,7 @@ import CustomDropdown from '../../CustomDropdown';
 import CustomDatepicker from '../../CustomDatepicker';
 import { useFilterBarController } from "./filterbar.controller"
 import type { MappedAsset, MappedShift } from '../../../types/Interfaces';
+import AppLoader from '../../../components/Apploader/AppLoader';
 
 import type { FilterState } from '../../../types/types';
 
@@ -26,6 +27,9 @@ const FilterBar = ({ handleFilterChange }: FilterBarProps) => {
         resetFilters,
         handleExactProducesChange
     } = useFilterBarController(handleFilterChange)
+
+    // Show loader when assets or shifts are loading
+    const isLoading = assetsLoading || shiftsLoading;
 
     // Transform API data to dropdown options
     const assetOptions: DropdownOption[] = Array.isArray(flatAssets)
@@ -52,6 +56,7 @@ const FilterBar = ({ handleFilterChange }: FilterBarProps) => {
                 mb: 3,
             }}
         >
+            {isLoading && <AppLoader loading={isLoading} sx={{ mb: 2 }} />}
             <Stack
                 direction={{ xs: 'column', sm: 'row' }}
                 spacing={2}

@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import ReactECharts from "echarts-for-react";
 import dayjs from "dayjs";
+import AppLoader from "../Apploader/AppLoader";
 
 // Helper to map your API state types to the exact colors in your image
 const getStateColor = (type: string, isPlanned: boolean) => {
@@ -168,7 +169,7 @@ export default function ProductionHistoryChart({
     };
   }, [timelineData, shiftStartTime, shiftEndTime, theme]);
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <AppLoader loading={isLoading} />;
 
   return (
     <Paper elevation={1} sx={{ p: 2, mt: 2 }}>

@@ -9,6 +9,7 @@ import {
 import { CustomInput } from "../CustomInput";
 import { PrimaryButton } from "../Buttons";
 import { useLoginController } from "./login.controller";
+import AppLoader from "../Apploader/AppLoader";
 
 const Login = () => {
 
@@ -34,6 +35,7 @@ const Login = () => {
         >
             <Card sx={{ width: "100%", maxWidth: 440, borderRadius: 4, boxShadow: 6 }}>
                 <CardContent sx={{ p: 4 }}>
+                    {isPending && <AppLoader loading={isPending} sx={{ mb: 2 }} />}
                     <Stack spacing={3}>
                         <Box>
                             <Typography
