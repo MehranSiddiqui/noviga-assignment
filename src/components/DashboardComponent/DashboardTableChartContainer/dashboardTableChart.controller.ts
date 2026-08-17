@@ -95,12 +95,12 @@ export const useTableChartController = (activeFilters: ActiveFilterState) => {
 
     return payload;
   }, [activeFilters]);
-console.log({ activeFilters})
+  console.log({ activeFilters });
   const timelinePayload = useMemo(() => {
     if (!apiPayload) return null;
     return {
       ...apiPayload,
-      exact_produces: activeFilters?.exactProduces ,
+      exact_produces: activeFilters?.exactProduces,
       produce_counts: true,
       group_produce_counts_by_part_model: true,
     };
@@ -139,5 +139,8 @@ console.log({ activeFilters})
   return {
     ROWS,
     tableData,
+    timelineData,
+    timelineFetching,
+    activeFilters,
   };
 };
