@@ -1,0 +1,6 @@
+{
+  "trace_id": "a1b2c3d4-e5f6-7890-g1h2-i3j4k5l6m7n8",
+  "status_code": 400,
+  "message": "Bad Request - Invalid request parameters",
+  "data": null
+}

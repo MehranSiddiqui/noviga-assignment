@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { ActiveFilterState } from "../../../types/types";
 import {
   buildUtcTimeRange,
@@ -14,6 +14,9 @@ import dayjs from "dayjs";
 import { processTableData } from "../../../utils/tableProcessor";
 
 export const useTableChartController = (activeFilters: ActiveFilterState) => {
+  const [exactPoint, setExactPoint] = useState<boolean>(false);
+  const [pointLabels, setPointLabels] = useState<boolean>(false);
+
   const ROWS = [
     { key: "total", label: "Total", suffix: "" },
     { key: "pass", label: "Pass", suffix: "" },
@@ -68,9 +71,8 @@ export const useTableChartController = (activeFilters: ActiveFilterState) => {
       isFloat: true,
     },
   ];
-  console.log({ activeFilters });
   const apiPayload = useMemo(() => {
-    if (!activeFilters?.assetId) {
+    if (!activeFilters?.assetId || !activeFilters?.assetLevelId) {
       return null;
     }
 
@@ -96,15 +98,21 @@ export const useTableChartController = (activeFilters: ActiveFilterState) => {
     return payload;
   }, [activeFilters]);
   console.log({ activeFilters });
+
+  const handlePoints = useCallback((key: string) => {
+    if (key === "points") setExactPoint((prev) => !prev);
+    else if (key === "labels") setPointLabels((prev) => !prev);
+  }, []);
+
   const timelinePayload = useMemo(() => {
     if (!apiPayload) return null;
     return {
       ...apiPayload,
       exact_produces: activeFilters?.exactProduces,
-      produce_counts: true,
-      group_produce_counts_by_part_model: true,
+      produce_counts: exactPoint,
+      group_produce_counts_by_part_model: pointLabels,
     };
-  }, [apiPayload, activeFilters?.exactProduces]);
+  }, [apiPayload, activeFilters?.exactProduces, exactPoint, pointLabels]);
   const {
     data: timelineData,
     isFetching: timelineFetching,
@@ -124,6 +132,7 @@ export const useTableChartController = (activeFilters: ActiveFilterState) => {
         }
       : null,
   );
+
   const tableData = useMemo(() => {
     if (!apiPayload || !apiPayload.time_range || !timelineData) return [];
 
@@ -135,12 +144,22 @@ export const useTableChartController = (activeFilters: ActiveFilterState) => {
     return processTableData(buckets, timelineData, cycleData);
   }, [apiPayload, timelineData, cycleData]);
 
-  console.log({ tableData });
+  const timeRange = useMemo(() => {
+    return apiPayload?.time_range;
+  }, [apiPayload?.time_range]);
+  console.log({ timeRange });
   return {
     ROWS,
     tableData,
     timelineData,
     timelineFetching,
-    activeFilters,
+    timelineError,
+    cycleData,
+    cycleFetching,
+    cycleError,
+    timeRange,
+    handlePoints,
+    exactPoint,
+    pointLabels,
   };
 };

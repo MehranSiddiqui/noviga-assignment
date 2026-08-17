@@ -68,6 +68,7 @@ export interface ProcessedHour {
   unplannedDowntime: number;
   unplannedProduction: number;
   unknownUnplannedProduction: number;
+  isElapsed?: boolean;
 }
 
 export interface Rows {
@@ -92,7 +93,9 @@ export interface ApiPayload {
 
   distribution?: string;
   metrics?: string[];
-  
+  exact_produces?: boolean;
+  produce_counts?: boolean;
+  group_produce_counts_by_part_model?: boolean;
 }
 
 export interface ProcessedHour {

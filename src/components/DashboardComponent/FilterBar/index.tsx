@@ -28,7 +28,6 @@ const FilterBar = ({ handleFilterChange }: FilterBarProps) => {
         handleExactProducesChange
     } = useFilterBarController(handleFilterChange)
 
-    // Show loader when assets or shifts are loading
     const isLoading = assetsLoading || shiftsLoading;
 
     // Transform API data to dropdown options
