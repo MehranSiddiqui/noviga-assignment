@@ -97,7 +97,6 @@ export const useTableChartController = (activeFilters: ActiveFilterState) => {
 
     return payload;
   }, [activeFilters]);
-  console.log({ activeFilters });
 
   const handlePoints = useCallback((key: string) => {
     if (key === "points") setExactPoint((prev) => !prev);
@@ -147,7 +146,6 @@ export const useTableChartController = (activeFilters: ActiveFilterState) => {
   const timeRange = useMemo(() => {
     return apiPayload?.time_range;
   }, [apiPayload?.time_range]);
-  console.log({ timeRange });
   return {
     ROWS,
     tableData,

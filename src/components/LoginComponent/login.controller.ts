@@ -21,7 +21,6 @@ export const useLoginController = () => {
     try {
       const response = await loginApiCall(payload);
       if (response?.status_code === 200) {
-        console.log({ response });
         await login(response.data.access_token);
         navigate("/dashboard");
         return;

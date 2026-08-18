@@ -7,7 +7,6 @@ import TimelineTableContainer from "./DashboardTableChartContainer"
 const DashBoardComponent = () => {
     const { activeFilters,
         handleFilterChange, } = useDashboardController()
-    console.log({ activeFilters })
     return (
         <Box>
             <Wrapper>

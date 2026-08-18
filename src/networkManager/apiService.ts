@@ -4,18 +4,9 @@ import { ENDPOINTS } from "./endPoints";
 
 export const authAPI = {
   login: (data: { username: string; password: string }) =>
-    apiClient.post<ApiResponse<LoginData>>(
-      ENDPOINTS.LOGIN.POST,
-      data,
-    ) as unknown as Promise<ApiResponse<LoginData>>,
-  getUser: () =>
-    apiClient.get<ApiResponse>(
-      ENDPOINTS.LOGIN.GET_USER,
-    ) as unknown as Promise<ApiResponse>,
-  logout: () =>
-    apiClient.post<ApiResponse>(
-      ENDPOINTS.LOGOUT.POST,
-    ) as unknown as Promise<ApiResponse>,
+    apiClient.post<ApiResponse<LoginData>>(ENDPOINTS.LOGIN.POST, data),
+  getUser: () => apiClient.get(ENDPOINTS.LOGIN.GET_USER),
+  logout: () => apiClient.post<ApiResponse>(ENDPOINTS.LOGOUT.POST),
 };
 
 export const coreAPI = {

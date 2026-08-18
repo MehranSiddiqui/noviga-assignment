@@ -31,6 +31,7 @@ export default function PrivateLayout({ children }: PrivateLayoutProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { user } = useAuth();
   const { mutateAsync: performLogout } = useLogoutMutation();
 
   const handleDrawerToggle = () => {
@@ -47,7 +48,6 @@ export default function PrivateLayout({ children }: PrivateLayoutProps) {
       navigate('/login');
     }
   };
-
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
@@ -68,9 +68,16 @@ export default function PrivateLayout({ children }: PrivateLayoutProps) {
             </Typography>
           </Box>
 
-          <Button color="inherit" onClick={handleLogout} startIcon={<LogoutIcon />}>
-            Logout
-          </Button>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            {user ? (
+              <Typography variant="body2" color="text.primary">
+                Hello, {user.customer_name}
+              </Typography>
+            ) : null}
+            <Button color="inherit" onClick={handleLogout} startIcon={<LogoutIcon />}>
+              Logout
+            </Button>
+          </Box>
         </Toolbar>
       </AppBar>
 

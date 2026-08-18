@@ -1,8 +1,25 @@
 import type { ReactNode } from "react";
 
+export interface UserData {
+  id: string;
+  hid: number;
+  username: string;
+  email: string;
+  name: string;
+  customer_id: string;
+  customer_name: string;
+  designation_id: string;
+  designation_name: string;
+  department_id: string;
+  department_name: string;
+  status: string;
+  roles: string[];
+}
+
 export interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
+  user: UserData | null;
   login: (token: string) => Promise<void>;
   logout: () => Promise<void>;
 }

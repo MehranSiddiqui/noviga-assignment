@@ -172,7 +172,6 @@ export const useFilterBarController = (
     });
     setExactProduces(false);
   }, [filteredAssets, dropdownShifts]);
-  console.log({ filterState });
   return {
     filterState,
     flatAssets,
