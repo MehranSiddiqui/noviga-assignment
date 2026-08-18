@@ -1,19 +1,17 @@
-import { defineConfig } from 'vite'
-import react, { reactCompilerPreset } from '@vitejs/plugin-react'
-import babel from '@rolldown/plugin-babel'
+import { defineConfig } from "vite";
+import react, { reactCompilerPreset } from "@vitejs/plugin-react";
+import babel from "@rolldown/plugin-babel";
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [
-    react(),
-    babel({ presets: [reactCompilerPreset()] })
-  ],
+  base: "/noviga-assignment/",
+  plugins: [react(), babel({ presets: [reactCompilerPreset()] })],
   resolve: {
     alias: [
       {
         find: /^@mui\/styled-engine$/,
-        replacement: '@mui/styled-engine-sc',
+        replacement: "@mui/styled-engine-sc",
       },
     ],
   },
-})
+});
