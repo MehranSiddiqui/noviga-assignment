@@ -18,68 +18,90 @@ const apiClient = axios.create({
 // Flag to force offline mode (can be set via environment variable or runtime flag)
 const isOfflineModeEnabled =
   import.meta.env?.VITE_OFFLINE_MODE === "true" ||
-  window?.__FORCE_OFFLINE_MODE__ === true;
-
-// Flag to prefer offline data even when online (useful for development)
-const preferOfflineData =
-  import.meta.env?.VITE_PREFER_OFFLINE_DATA === "true";
+  (window as Window)?.__FORCE_OFFLINE_MODE__ === true;
 
 // Request interceptor for adding auth token
 apiClient.interceptors.request.use(
-  (config) => {
+  async (config) => {
     const token = StorageManager.getToken();
 
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // If offline mode is enabled, skip the actual request and return offline data immediately
-    if (isOfflineModeEnabled && OfflineDataService.hasOfflineData(config.url)) {
+    // If offline mode is enabled, skip the actual request and use offline data
+    if (
+      isOfflineModeEnabled &&
+      OfflineDataService.hasOfflineData(config.url as string)
+    ) {
       if (import.meta.env?.MODE === "development") {
-        console.log(`[API Request] Skipping actual request (offline mode enabled) for ${config.url}`);
+        console.log(
+          `[API Request] Using offline data (offline mode enabled) for ${config.url}`,
+        );
       }
 
-      // Return a promise that resolves with offline data
-      return OfflineDataService.loadOfflineData(config.url, false).then(offlineData => {
-        // Create a mock response object that matches axios response structure
-        const mockResponse = {
-          data: offlineData,
-          status: offlineData.status_code,
-          statusText: offlineData.message,
-          headers: {},
-          config: config
-        };
-        return mockResponse;
-      });
+      try {
+        // Load offline data and attach to config for response interceptor to use
+        const offlineData = await OfflineDataService.loadOfflineData(
+          config.url as string,
+          false,
+        );
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (config as any).__offlineData = offlineData;
+        return config;
+      } catch (offlineError) {
+        console.error(
+          "[Offline Data Error in Request Interceptor]",
+          offlineError,
+        );
+        // If offline data loading fails, proceed with normal request
+        return config;
+      }
     }
 
     // Log request in development
     if (import.meta.env?.MODE === "development") {
-      console.log(`[API Request] ${config.method?.toUpperCase() || 'GET'} ${config.url}`, {
-        data: config.data,
-        headers: config.headers,
-        params: config.params
-      });
+      console.log(
+        `[API Request] ${config.method?.toUpperCase() || "GET"} ${config.url}`,
+        {
+          data: config.data,
+          headers: config.headers,
+          params: config.params,
+        },
+      );
     }
 
     return config;
   },
   (error) => {
-    console.error('[API Request Error]', error);
+    console.error("[API Request Error]", error);
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response interceptor for handling responses and errors with offline fallback
 apiClient.interceptors.response.use(
   (response) => {
+    // Check if we have offline data attached to the config (from request interceptor)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const configAny = response.config as any;
+    if (response.config && configAny.__offlineData) {
+      const offlineData = configAny.__offlineData;
+      // Clean up to avoid potential memory leak
+      delete configAny.__offlineData;
+      return offlineData.data;
+    }
+
     // Log response in development
     if (import.meta.env?.MODE === "development") {
-      console.log(`[API Response] ${response.config?.method?.toUpperCase() || 'GET'} ${response.config?.url}`, {
-        status: response.status,
-        data: response.data,
-        headers: response.headers
-      });
+      console.log(
+        `[API Response] ${response.config?.method?.toUpperCase() || "GET"} ${response.config?.url}`,
+        {
+          status: response.status,
+          data: response.data,
+          headers: response.headers,
+        },
+      );
     }
 
     // Return data if available (matches original behavior)
@@ -91,10 +113,10 @@ apiClient.interceptors.response.use(
   async (error) => {
     // Log error in development
     if (import.meta.env?.MODE === "development") {
-      console.error('[API Response Error]', {
+      console.error("[API Response Error]", {
         status: error.response?.status,
         data: error.response?.data,
-        message: error.message
+        message: error.message,
       });
     }
 
@@ -118,9 +140,13 @@ apiClient.interceptors.response.use(
       try {
         const urlObj = new URL(url);
         endpointPath = urlObj.pathname;
-      } catch (e) {
+      } catch (err) {
         // If URL parsing fails, use the url as-is (might already be just a path)
-        console.warn('[API Client] Failed to parse URL for offline data matching:', url);
+        console.warn(
+          "[API Client] Failed to parse URL for offline data matching:",
+          url,
+          err,
+        );
       }
 
       // Check if we have offline data for this endpoint
@@ -128,14 +154,19 @@ apiClient.interceptors.response.use(
         try {
           // Log that we're using offline data
           if (import.meta.env?.MODE === "development") {
-            console.log(`[API Fallback] Using offline data for ${endpointPath}`);
+            console.log(
+              `[API Fallback] Using offline data for ${endpointPath}`,
+            );
           }
 
           // Load and return offline data (use cache for performance)
-          const offlineData = await OfflineDataService.loadOfflineData(endpointPath, true);
+          const offlineData = await OfflineDataService.loadOfflineData(
+            endpointPath,
+            true,
+          );
           return offlineData;
         } catch (offlineError) {
-          console.error('[Offline Data Error]', offlineError);
+          console.error("[Offline Data Error]", offlineError);
           // If offline data loading fails, reject with original error
           // But only if we're not in a development mode that prefers offline data
           if (import.meta.env?.VITE_USE_OFFLINE_DATA_AS_PRIMARY !== "true") {
@@ -148,7 +179,7 @@ apiClient.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default apiClient;

@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 export interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -112,4 +114,63 @@ export interface ProcessedHour {
   unplannedDowntime: number;
   unplannedProduction: number;
   unknownUnplannedProduction: number;
+}
+
+export interface Interval {
+  start_at: string;
+  end_at: string;
+  type?: string;
+  category?: string;
+  planned?: boolean;
+}
+
+export interface ProduceCount {
+  bucket_start: string;
+  ok_count: number;
+  ng_count: number;
+}
+
+export interface IndividualProduce {
+  ts: string;
+  status: "OK" | "FAIL" | "WIP";
+}
+
+export interface ProductionHistoryChartProps {
+  timelineData: {
+    runtimes?: Interval[];
+    downtimes?: Interval[];
+    stoppages?: Interval[];
+    produce_counts?: ProduceCount[];
+    produces?: IndividualProduce[];
+  };
+  shiftStartTime: string;
+  shiftEndTime: string;
+  isLoading?: boolean;
+  exactProduces?: boolean;
+  showPointLabels?: boolean;
+  togglePointLabels?: (key: string) => void;
+}
+
+export interface IndividualSeriesData {
+  value: [number, number];
+  status: IndividualProduce["status"];
+}
+
+export interface TooltipParam {
+  value: number[];
+}
+
+export interface SymbolCallbackParams {
+  data?: {
+    status: IndividualProduce["status"];
+  };
+}
+
+export interface Props {
+  children: ReactNode;
+}
+
+export interface State {
+  hasError: boolean;
+  error: Error | null;
 }

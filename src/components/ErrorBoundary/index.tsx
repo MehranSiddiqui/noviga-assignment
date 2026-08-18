@@ -1,16 +1,7 @@
-import React from 'react';
-import type { ReactNode } from 'react';
-import { Box, Typography, Button } from '@mui/material';
-import ErrorIcon from '@mui/icons-material/Error';
-
-interface Props {
-  children: ReactNode;
-}
-
-interface State {
-  hasError: boolean;
-  error: Error | null;
-}
+import React from "react";
+import { Box, Typography, Button } from "@mui/material";
+import ErrorIcon from "@mui/icons-material/Error";
+import type { Props, State } from "../../types/Interfaces";
 
 class ErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
@@ -23,7 +14,7 @@ class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
+    console.error("Error caught by boundary:", error, errorInfo);
   }
 
   handleReset = () => {
@@ -35,24 +26,30 @@ class ErrorBoundary extends React.Component<Props, State> {
       return (
         <Box
           sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '100vh',
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: "100vh",
             p: 3,
-            backgroundColor: '#f5f5f5',
+            backgroundColor: "#f5f5f5",
           }}
         >
-          <ErrorIcon sx={{ fontSize: 60, color: 'error.main', mb: 2 }} />
+          <ErrorIcon sx={{ fontSize: 60, color: "error.main", mb: 2 }} />
           <Typography variant="h5" sx={{ mb: 2 }}>
             Something went wrong
           </Typography>
           <Typography
             variant="body2"
-            sx={{ mb: 3, maxWidth: 500, textAlign: 'center', color: 'text.secondary' }}
+            sx={{
+              mb: 3,
+              maxWidth: 500,
+              textAlign: "center",
+              color: "text.secondary",
+            }}
           >
-            An unexpected error occurred. Please try refreshing the page or contact support.
+            An unexpected error occurred. Please try refreshing the page or
+            contact support.
           </Typography>
           {import.meta.env.DEV && this.state.error && (
             <Typography
@@ -60,14 +57,14 @@ class ErrorBoundary extends React.Component<Props, State> {
               sx={{
                 mb: 3,
                 p: 2,
-                backgroundColor: '#fff',
+                backgroundColor: "#fff",
                 borderRadius: 1,
                 maxWidth: 500,
-                overflow: 'auto',
+                overflow: "auto",
                 maxHeight: 200,
-                whiteSpace: 'pre-wrap',
-                fontFamily: 'monospace',
-                fontSize: '0.75rem',
+                whiteSpace: "pre-wrap",
+                fontFamily: "monospace",
+                fontSize: "0.75rem",
               }}
             >
               {this.state.error.toString()}

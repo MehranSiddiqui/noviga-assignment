@@ -11,42 +11,13 @@ import {
 } from "@mui/material";
 import ReactECharts from "echarts-for-react";
 import dayjs from "dayjs";
-
-interface Interval {
-  start_at: string;
-  end_at: string;
-  type?: string;
-  category?: string;
-  planned?: boolean;
-}
-
-interface ProduceCount {
-  bucket_start: string;
-  ok_count: number;
-  ng_count: number;
-}
-
-interface IndividualProduce {
-  ts: string;
-  status: "OK" | "FAIL" | "WIP";
-}
-
-interface ProductionHistoryChartProps {
-  timelineData: {
-    runtimes?: Interval[];
-    downtimes?: Interval[];
-    stoppages?: Interval[];
-    produce_counts?: ProduceCount[];
-    produces?: IndividualProduce[];
-  };
-  shiftStartTime: string;
-  shiftEndTime: string;
-  isLoading?: boolean;
-
-  exactProduces?: boolean;
-  showPointLabels?: boolean;
-  togglePointLabels?: (key: string) => void;
-}
+import type {
+  IndividualSeriesData,
+  Interval,
+  ProductionHistoryChartProps,
+  SymbolCallbackParams,
+  TooltipParam,
+} from "../../types/Interfaces";
 
 const STATE_COLORS: Record<string, string> = {
   runtime: "#26a69a",
@@ -60,25 +31,19 @@ const STATE_COLORS: Record<string, string> = {
 const getBandColor = (interval: Interval) => {
   const cat =
     interval.category?.toLowerCase() || interval.type?.toLowerCase() || "";
+
   if (cat.includes("runtime")) return STATE_COLORS.runtime;
+
   if (cat.includes("stoppage")) return STATE_COLORS.stoppage;
+
   if (interval.planned) return STATE_COLORS["planned downtime"];
-  if (cat.includes("unknown") || cat.includes("downtime"))
+
+  if (cat.includes("unknown") || cat.includes("downtime")) {
     return STATE_COLORS["unplanned downtime"];
+  }
+
   return "#e0e0e0";
 };
-
-type SeriesDataPoint =
-  | [number, number]
-  | { value: [number, number]; status: IndividualProduce["status"] };
-
-interface TooltipParam {
-  value: number[];
-}
-
-interface SymbolCallbackParams {
-  data?: { status: IndividualProduce["status"] };
-}
 
 export default function ProductionHistoryChart({
   timelineData,
@@ -95,8 +60,10 @@ export default function ProductionHistoryChart({
     if (!timelineData) return {};
 
     const allIntervals = [
-      ...(timelineData.runtimes?.map((i) => ({ ...i, category: "RUNTIME" })) ||
-        []),
+      ...(timelineData.runtimes?.map((i) => ({
+        ...i,
+        category: "RUNTIME",
+      })) || []),
       ...(timelineData.downtimes || []),
       ...(timelineData.stoppages?.map((i) => ({
         ...i,
@@ -106,13 +73,17 @@ export default function ProductionHistoryChart({
 
     const markAreaBlocks = allIntervals.map((interval) => {
       const labelText = interval.category || interval.type || "UNKNOWN";
+
       return [
         {
           xAxis: new Date(interval.start_at).getTime(),
-          itemStyle: { color: getBandColor(interval), opacity: 0.9 },
+          itemStyle: {
+            color: getBandColor(interval),
+            opacity: 0.9,
+          },
           label: {
             show: true,
-            position: "insideTop",
+            position: "inside",
             rotate: 90,
             color: "#fff",
             fontWeight: "bold",
@@ -127,21 +98,12 @@ export default function ProductionHistoryChart({
     });
 
     let currentCumulative = 0;
-    const seriesData: SeriesDataPoint[] = [];
 
-    if (exactProduces && timelineData.produces) {
-      const sortedProduces = [...timelineData.produces].sort(
-        (a, b) => new Date(a.ts).getTime() - new Date(b.ts).getTime(),
-      );
+    const cumulativeSeriesData: [number, number][] = [];
 
-      sortedProduces.forEach((p) => {
-        currentCumulative += 1;
-        seriesData.push({
-          value: [new Date(p.ts).getTime(), currentCumulative],
-          status: p.status,
-        });
-      });
-    } else if (timelineData.produce_counts) {
+    const individualSeriesData: IndividualSeriesData[] = [];
+
+    if (timelineData.produce_counts) {
       const sortedBuckets = [...timelineData.produce_counts].sort(
         (a, b) =>
           new Date(a.bucket_start).getTime() -
@@ -153,24 +115,144 @@ export default function ProductionHistoryChart({
         new Date(sortedBuckets[0].bucket_start).getTime() >
           new Date(shiftStartTime).getTime()
       ) {
-        seriesData.push([new Date(shiftStartTime).getTime(), 0]);
+        cumulativeSeriesData.push([new Date(shiftStartTime).getTime(), 0]);
       }
 
       sortedBuckets.forEach((p) => {
         currentCumulative += (p.ok_count || 0) + (p.ng_count || 0);
-        seriesData.push([
+
+        cumulativeSeriesData.push([
           new Date(p.bucket_start).getTime(),
           currentCumulative,
         ]);
       });
     }
+
+    if (timelineData.produces) {
+      const sortedProduces = [...timelineData.produces].sort(
+        (a, b) => new Date(a.ts).getTime() - new Date(b.ts).getTime(),
+      );
+
+      let individualCumulative = 0;
+
+      sortedProduces.forEach((p) => {
+        individualCumulative += 1;
+
+        individualSeriesData.push({
+          value: [new Date(p.ts).getTime(), individualCumulative],
+          status: p.status,
+        });
+      });
+    }
+
+    const series = [];
+
+    if (showPointLabels) {
+      series.push({
+        name: "Cumulative Production",
+        type: "line",
+        data: cumulativeSeriesData,
+        lineStyle: {
+          color: "#2962ff",
+          width: 2,
+        },
+        itemStyle: {
+          color: "#2962ff",
+        },
+        symbol: "circle",
+        symbolSize: 8,
+        label: {
+          show: exactProduces,
+          position: "top",
+          formatter: "{@1}",
+          color: "#2962ff",
+          fontWeight: "bold",
+          backgroundColor: "#fff",
+          padding: [2, 6],
+          borderRadius: 12,
+          borderWidth: 1,
+          borderColor: "#2962ff",
+          distance: 10,
+        },
+        markArea: {
+          silent: true,
+          data: markAreaBlocks,
+        },
+      });
+    } else {
+      series.push({
+        name: "Production Bands",
+        type: "line",
+        data: [],
+        lineStyle: {
+          opacity: 0,
+        },
+        itemStyle: {
+          opacity: 0,
+        },
+        symbol: "none",
+        markArea: {
+          silent: true,
+          data: markAreaBlocks,
+        },
+      });
+    }
+
+    if (exactProduces) {
+      series.push({
+        name: "Individual Produces",
+        type: "scatter",
+        data: individualSeriesData,
+        itemStyle: {
+          color: "#2962ff",
+        },
+        symbol: (value: number | number[], params: SymbolCallbackParams) => {
+          if (params.data?.status === "FAIL") {
+            return "path://M0,0 L10,10 M10,0 L0,10";
+          }
+
+          if (params.data?.status === "WIP") {
+            return "triangle";
+          }
+
+          return "circle";
+        },
+        symbolSize: 8,
+        label: {
+          show: exactProduces,
+          position: "top",
+          formatter: (params: { data?: IndividualSeriesData }) => {
+            return params.data?.status || "";
+          },
+          color: "#2962ff",
+          fontWeight: "bold",
+          backgroundColor: "#fff",
+          padding: [2, 6],
+          borderRadius: 12,
+          borderWidth: 1,
+          borderColor: "#2962ff",
+          distance: 10,
+        },
+      });
+    }
     return {
-      grid: { top: 60, bottom: 30, left: 50, right: 20 },
+      grid: {
+        top: 60,
+        bottom: 30,
+        left: 50,
+        right: 20,
+      },
+
       tooltip: {
         trigger: "axis",
         formatter: (params: TooltipParam[]) => {
           const point = params[0];
-          return `Time: ${dayjs(point.value[0]).format("HH:mm:ss")}<br/>Cumulative: ${point.value[1]}`;
+
+          if (!point?.value) return "";
+
+          return `Time: ${dayjs(point.value[0]).format(
+            "HH:mm:ss",
+          )}<br/>Cumulative: ${point.value[1]}`;
         },
       },
 
@@ -178,12 +260,22 @@ export default function ProductionHistoryChart({
         feature: {
           dataZoom: {
             yAxisIndex: "none",
-            title: { zoom: "Zoom", back: "Reset" },
+            title: {
+              zoom: "Zoom",
+              back: "Reset",
+            },
           },
         },
         showTitle: false,
       },
-      dataZoom: [{ type: "inside", xAxisIndex: 0 }],
+
+      dataZoom: [
+        {
+          type: "inside",
+          xAxisIndex: 0,
+        },
+      ],
+
       xAxis: {
         type: "time",
         min: new Date(shiftStartTime).getTime(),
@@ -192,8 +284,11 @@ export default function ProductionHistoryChart({
           formatter: "{HH}:{mm}",
           color: theme.palette.text.secondary,
         },
-        splitLine: { show: false },
+        splitLine: {
+          show: false,
+        },
       },
+
       yAxis: {
         type: "value",
         name: "Cumulative production",
@@ -203,45 +298,12 @@ export default function ProductionHistoryChart({
           align: "left",
           padding: [0, 0, 10, -40],
         },
-        splitLine: { show: false },
-      },
-      series: [
-        {
-          name: "Cumulative Production",
-          type: exactProduces ? "scatter" : "line",
-          data: seriesData,
-          lineStyle: { color: "#2962ff", width: 2 },
-          itemStyle: { color: "#2962ff" },
-
-          symbol: exactProduces
-            ? (value: number | number[], params: SymbolCallbackParams) => {
-                if (params.data?.status === "FAIL")
-                  return "path://M0,0 L10,10 M10,0 L0,10";
-                if (params.data?.status === "WIP") return "triangle";
-                return "circle";
-              }
-            : "circle",
-          symbolSize: exactProduces ? 6 : 8,
-          label: {
-            show: !exactProduces && showPointLabels,
-            position: "right",
-            formatter: "{@1}",
-            color: "#2962ff",
-            fontWeight: "bold",
-            backgroundColor: "#fff",
-            padding: [2, 6],
-            borderRadius: 12,
-            borderWidth: 1,
-            borderColor: "#2962ff",
-            distance: 10,
-          },
-
-          markArea: {
-            silent: true,
-            data: markAreaBlocks,
-          },
+        splitLine: {
+          show: false,
         },
-      ],
+      },
+
+      series,
     };
   }, [
     timelineData,
@@ -274,9 +336,12 @@ export default function ProductionHistoryChart({
     <Paper
       elevation={0}
       variant="outlined"
-      sx={{ p: 2, mb: 2, borderRadius: 2 }}
+      sx={{
+        p: 2,
+        mb: 2,
+        borderRadius: 2,
+      }}
     >
-      {}
       <Box
         sx={{
           display: "flex",
@@ -289,6 +354,7 @@ export default function ProductionHistoryChart({
           <Typography variant="subtitle1" fontWeight="bold">
             Production History
           </Typography>
+
           <Stack
             direction="row"
             alignItems="center"
@@ -298,15 +364,27 @@ export default function ProductionHistoryChart({
             <Typography variant="body2" color="textSecondary">
               Part Models:
             </Typography>
+
             <Typography
               variant="body2"
               fontWeight="bold"
-              sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+              }}
             >
-              <span style={{ color: "#2962ff", fontSize: "1.2em" }}>●</span> D22
+              <span
+                style={{
+                  color: "#2962ff",
+                  fontSize: "1.2em",
+                }}
+              >
+                ●
+              </span>
+              D22
             </Typography>
 
-            {}
             {exactProduces && (
               <>
                 <Typography
@@ -319,43 +397,61 @@ export default function ProductionHistoryChart({
                     ml: 1,
                   }}
                 >
-                  <span style={{ color: "#4caf50", fontSize: "1.2em" }}>●</span>{" "}
+                  <span
+                    style={{
+                      color: "#4caf50",
+                      fontSize: "1.2em",
+                    }}
+                  >
+                    ●
+                  </span>
                   OK
                 </Typography>
+
                 <Typography
                   variant="body2"
                   fontWeight="bold"
-                  sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                  }}
                 >
-                  <span style={{ color: "#f44336", fontSize: "1.2em" }}>×</span>{" "}
+                  <span
+                    style={{
+                      color: "#f44336",
+                      fontSize: "1.2em",
+                    }}
+                  >
+                    ×
+                  </span>
                   FAIL
                 </Typography>
+
                 <Typography
                   variant="body2"
                   fontWeight="bold"
-                  sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                  }}
                 >
-                  <span style={{ color: "#9e9e9e", fontSize: "1.2em" }}>▲</span>{" "}
+                  <span
+                    style={{
+                      color: "#9e9e9e",
+                      fontSize: "1.2em",
+                    }}
+                  >
+                    ▲
+                  </span>
                   WIP
                 </Typography>
               </>
             )}
           </Stack>
 
-          {}
           <Stack direction="row" spacing={3} sx={{ mt: 1 }}>
-            <FormControlLabel
-              control={
-                <Switch
-                  size="small"
-                  checked={exactProduces}
-                  onChange={() =>
-                    togglePointLabels && togglePointLabels("points")
-                  }
-                />
-              }
-              label={<Typography variant="body2">Point labels</Typography>}
-            />
             <FormControlLabel
               control={
                 <Switch
@@ -363,6 +459,19 @@ export default function ProductionHistoryChart({
                   checked={showPointLabels}
                   onChange={() =>
                     togglePointLabels && togglePointLabels("labels")
+                  }
+                />
+              }
+              label={<Typography variant="body2">Point labels</Typography>}
+            />
+
+            <FormControlLabel
+              control={
+                <Switch
+                  size="small"
+                  checked={exactProduces}
+                  onChange={() =>
+                    togglePointLabels && togglePointLabels("points")
                   }
                 />
               }
@@ -375,7 +484,6 @@ export default function ProductionHistoryChart({
           </Stack>
         </Box>
 
-        {}
         <Stack
           direction="row"
           spacing={2}
@@ -386,7 +494,12 @@ export default function ProductionHistoryChart({
           {Object.entries(STATE_COLORS).map(([label, color]) => (
             <Box
               key={label}
-              sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 0.5 }}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+                mb: 0.5,
+              }}
             >
               <Box
                 sx={{
@@ -396,9 +509,13 @@ export default function ProductionHistoryChart({
                   borderRadius: 0.5,
                 }}
               />
+
               <Typography
                 variant="caption"
-                sx={{ textTransform: "capitalize", fontWeight: 500 }}
+                sx={{
+                  textTransform: "capitalize",
+                  fontWeight: 500,
+                }}
               >
                 {label}
               </Typography>
@@ -407,7 +524,6 @@ export default function ProductionHistoryChart({
         </Stack>
       </Box>
 
-      {}
       <Box
         sx={{
           width: "100%",
@@ -419,13 +535,15 @@ export default function ProductionHistoryChart({
       >
         <ReactECharts
           option={chartOptions}
-          style={{ height: "100%", width: "100%" }}
+          style={{
+            height: "100%",
+            width: "100%",
+          }}
           notMerge={true}
           lazyUpdate={true}
         />
       </Box>
 
-      {}
       <Stack
         direction="row"
         spacing={2}
@@ -438,11 +556,13 @@ export default function ProductionHistoryChart({
           variant="outlined"
           label="Shift + drag to zoom into a time range · double-click to reset"
         />
+
         <Chip
           size="small"
           variant="outlined"
           label="Colored lines = cumulative production (OK + NG) per part model"
         />
+
         {exactProduces && (
           <Chip
             size="small"
@@ -452,13 +572,17 @@ export default function ProductionHistoryChart({
         )}
       </Stack>
 
-      {}
       <Stack direction="row" spacing={2} sx={{ mt: 1 }}>
         <Chip
           variant="outlined"
           label="Last observed produce at: 15 Jul, 16:37:55"
-          sx={{ borderColor: "#2962ff", color: "#2962ff", fontWeight: "bold" }}
+          sx={{
+            borderColor: "#2962ff",
+            color: "#2962ff",
+            fontWeight: "bold",
+          }}
         />
+
         <Chip
           variant="outlined"
           label="⚠️ 10 unknown segments - 55.0 min — click a segment to classify"
