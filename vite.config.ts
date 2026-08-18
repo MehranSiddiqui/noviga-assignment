@@ -4,7 +4,6 @@ import babel from "@rolldown/plugin-babel";
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: "/noviga-assignment/",
   plugins: [react(), babel({ presets: [reactCompilerPreset()] })],
   resolve: {
     alias: [
