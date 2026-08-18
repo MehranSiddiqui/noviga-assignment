@@ -11,7 +11,7 @@
 *   **Decision**: Chose **`localStorage`** to store the key/token on the client side. 
 *   **Why `localStorage`?** 
     *   **Persistence**: Data survives browser restarts and is shared across all tabs of the same origin. In a dashboard application, users frequently open different machines or reports in new tabs; `localStorage` ensures they don't have to re-enter the key or re-authenticate for every new tab.
-    *   **Capacity & Access**: Provides ample storage (~5-10MB) and is instantly accessible synchronously via JavaScript.
+    *   *Capacity & Access*: Provides ample storage (~5-10MB) and is instantly accessible synchronously via JavaScript.
 *   **Why not `sessionStorage`?**
     *   `sessionStorage` is strictly isolated per tab and clears completely when the tab is closed. If a user middle-clicks a link to open a machine view in a new tab, the key would be lost, resulting in a fractured and frustrating User Experience (UX).
 *   **Why not Cookies?**
@@ -76,3 +76,73 @@
     *   **Background Gantt Bands**: Utilized ECharts' `markArea` injected into the series to draw colored state blocks (Runtime, Downtime, Stoppages) with 90-degree rotated labels.
     *   **Dynamic Series Type**: Used a ternary operator (`type: exactProduces ? 'scatter' : 'line'`) to seamlessly transition between an aggregated cumulative line chart and a scatter plot of individual machine produces.
     *   **Custom Symbols**: Programmatically changed scatter plot symbols (Circle, Cross, Triangle) based on the individual produce status (OK, FAIL, WIP).
+
+## 8. API Client Implementation
+
+### Core Features in `apiClient.ts`:
+1. **Axios Instance Setup**
+   - Configured with base URL from `VITE_API_BASE_URL` environment variable
+   - Default headers: `Content-Type: application/json`
+   - 30-second timeout
+
+2. **Request Interceptor**
+   - **Authentication**: Automatically adds JWT token from `StorageManager` to requests
+   - **Offline Mode Detection**: 
+     * Checks `VITE_OFFLINE_MODE` environment variable
+     * Checks runtime flag `window.__FORCE_OFFLINE_MODE__`
+   - **Offline Data Pre-loading**: When offline mode is enabled:
+     * Loads appropriate offline JSON data for the endpoint
+     * Attaches data to request config for response interceptor
+     * Development logging shows when offline data is used
+   - **Development Logging**: Logs request details (method, URL, data, headers, params)
+
+3. **Response Interceptor**
+   - **Success Handling**: Returns response data (maintains original axios behavior)
+   - **401 Handling**: Removes invalid token and redirects to login page
+   - **Offline Fallback**: For failed API calls:
+     * Extracts endpoint path from URL
+     * Checks if offline data exists via `OfflineDataService`
+     * Loads and returns cached offline data when available
+     * Development logging shows fallback usage
+   - **Development Logging**: Logs response details (status, data, headers)
+
+4. **Typed API Client Wrapper**
+   - Provides strongly-typed `get`, `post`, `put`, `patch`, `delete` methods
+   - Maintains compatibility with existing code
+
+### Supporting Files:
+
+#### `offlineDataService.ts`:
+- **Endpoint Mapping**: Maps API endpoints to local JSON files:
+  * `/analytics-query/machine-intervals` → `sample-machine-intervals.json`
+  * `/analytics-query` → `sample-analytics-query-cycle-time.json`
+- **Error Simulation**: Maps endpoints to error JSON files for testing:
+  * `/core/assets/tree` → `sample-error-404.json`
+  * `/analytics-query` → `sample-error-500.json`
+- **Caching System**: Uses Map-based cache to prevent redundant fetches
+- **Cache Management**: Methods to load data, check availability, and clear cache
+
+#### `offlineModeController.ts`:
+- **Runtime Controls** (accessible via `window.__offlineModeController`):
+  * `enableOfflineMode()` - Forces offline mode
+  * `disableOfflineMode()` - Disables offline mode
+  * `toggleOfflineMode()` - Toggles offline mode state
+  * `clearOfflineCache()` - Clears offline data cache
+  * `getOfflineModeStatus()` - Returns current offline mode status
+
+### Configuration & Features (Per Project Notes):
+- **Environment Variables**:
+  * `VITE_OFFLINE_MODE=true` - Forces ALL API calls to use offline data
+  * `VITE_PREFER_OFFLINE_DATA=true` - Prefers offline data when available (development optimization)
+
+- **Key Benefits Implemented**:
+  * **Resilience**: Graceful degradation during API/server outages
+  * **Development**: Enables offline development/fast iteration
+  * **Performance**: Caching eliminates network latency for cached data
+  * **Testing**: Easy simulation of error conditions (400, 403, 404, 500)
+  * **Debugging**: Enhanced logging shows when offline data is served
+
+- **API Handling Improvements** (from notes):
+  * **TanStack Query Reactivity**: Fixed by including payload in queryKey
+  * **API 422 Errors**: Solved with 3-tier payload strategy using useMemo
+  * **UTC Time Formatting**: Using DayJS format `YYYY-MM-DDTHH:mm:ss[Z]`
