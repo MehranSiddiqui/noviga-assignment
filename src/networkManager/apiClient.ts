@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { type AxiosRequestConfig } from "axios";
 import { StorageManager } from "../utils/storageManager";
 import { OfflineDataService } from "./offlineDataService";
 
@@ -182,4 +182,35 @@ apiClient.interceptors.response.use(
   },
 );
 
-export default apiClient;
+
+const typedApiClient = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  get: <T = any>(url: string, config?: AxiosRequestConfig): Promise<T> =>
+    apiClient.get(url, config) as unknown as Promise<T>,
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  post: <T = any>(
+    url: string,
+    data?: unknown,
+    config?: AxiosRequestConfig,
+  ): Promise<T> => apiClient.post(url, data, config) as unknown as Promise<T>,
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  put: <T = any>(
+    url: string,
+    data?: unknown,
+    config?: AxiosRequestConfig,
+  ): Promise<T> => apiClient.put(url, data, config) as unknown as Promise<T>,
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  patch: <T = any>(
+    url: string,
+    data?: unknown,
+    config?: AxiosRequestConfig,
+  ): Promise<T> => apiClient.patch(url, data, config) as unknown as Promise<T>,
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  delete: <T = any>(url: string, config?: AxiosRequestConfig): Promise<T> =>
+    apiClient.delete(url, config) as unknown as Promise<T>,
+};
+export default typedApiClient;

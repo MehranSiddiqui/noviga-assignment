@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { authAPI } from "../../networkManager";
+import type { LoginRequest } from "../../types/Interfaces";
 
 export const useUserQuery = (enabled: boolean = true) => {
   return useQuery({
@@ -12,7 +13,7 @@ export const useUserQuery = (enabled: boolean = true) => {
 };
 export const useLoginMutation = () => {
   return useMutation({
-    mutationFn: (data: { username: string; password: string }) =>
+    mutationFn: (data: LoginRequest) =>
       authAPI.login(data),
   });
 };

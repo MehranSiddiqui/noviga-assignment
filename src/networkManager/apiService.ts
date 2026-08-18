@@ -1,4 +1,8 @@
-import type { ApiPayload, ApiResponse, LoginData } from "../types/Interfaces";
+import type {
+  ApiPayload,
+  ApiResponse,
+  LoginData,
+} from "../types/Interfaces";
 import apiClient from "./apiClient";
 import { ENDPOINTS } from "./endPoints";
 

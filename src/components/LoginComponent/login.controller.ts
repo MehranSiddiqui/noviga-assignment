@@ -19,13 +19,19 @@ export const useLoginController = () => {
     };
 
     try {
-      const response = await loginApiCall(payload);
-      if (response?.status_code === 200) {
-        await login(response.data.access_token);
-        navigate("/dashboard");
-        return;
+      try {
+        const response = await loginApiCall(payload);
+
+        if (response.status_code === 200) {
+          await login(response.data.access_token);
+          navigate("/dashboard");
+          return;
+        }
+
+        setErrorMessage("Login failed. Please try again.");
+      } catch (err) {
+        setErrorMessage(getApiErrorMessage(err));
       }
-      setErrorMessage("Login failed. Please try again.");
     } catch (err) {
       setErrorMessage(getApiErrorMessage(err));
     }

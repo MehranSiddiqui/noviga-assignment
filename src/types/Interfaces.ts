@@ -34,6 +34,11 @@ export interface ApiResponse<T = unknown> {
 export interface LoginData {
   access_token: string;
 }
+
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
 export interface MappedAsset {
   id: string;
   name: string;

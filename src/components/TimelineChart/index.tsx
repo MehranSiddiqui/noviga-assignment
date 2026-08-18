@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import {
   Box,
   Paper,
@@ -206,7 +206,7 @@ export default function ProductionHistoryChart({
         itemStyle: {
           color: "#2962ff",
         },
-        symbol: (value: number | number[], params: SymbolCallbackParams) => {
+        symbol: (_value: number | number[], params: SymbolCallbackParams) => {
           if (params.data?.status === "FAIL") {
             return "path://M0,0 L10,10 M10,0 L0,10";
           }
@@ -457,9 +457,14 @@ export default function ProductionHistoryChart({
                 <Switch
                   size="small"
                   checked={showPointLabels}
-                  onChange={() =>
-                    togglePointLabels && togglePointLabels("labels")
-                  }
+                  onChange={(e) => {
+                    if (togglePointLabels) {
+                      togglePointLabels("labels");
+                      if (!e?.target?.checked) {
+                        togglePointLabels("points");
+                      }
+                    }
+                  }}
                 />
               }
               label={<Typography variant="body2">Point labels</Typography>}
@@ -473,6 +478,7 @@ export default function ProductionHistoryChart({
                   onChange={() =>
                     togglePointLabels && togglePointLabels("points")
                   }
+                  disabled={!showPointLabels}
                 />
               }
               label={
